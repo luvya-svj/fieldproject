@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+:root {
+    --bg-base: #ffffff;
+    --bg-muted: #f9fafb;
+    --text-base: #111827;
+    --text-muted: #4b5563;
+}
+
+.dark {
+    --bg-base: #0f172a;
+    --bg-muted: #1e293b;
+    --text-base: #f8fafc;
+    --text-muted: #94a3b8;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: var(--bg-muted);
+    color: var(--text-base);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom dark utility if Tailwind dark: variant fails */
+.dark body {
+    background-color: #0f172a;
+    color: #f8fafc;
+}
