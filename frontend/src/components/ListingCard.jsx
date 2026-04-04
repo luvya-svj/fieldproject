@@ -32,7 +32,12 @@ const ListingCard = ({ data, type }) => {
         <div className={`group rounded-2xl border transition-all duration-500 overflow-hidden flex flex-col h-full ${emergencyStyles}`}>
             {!isPharmacy && (
                 <div className="relative h-48 overflow-hidden">
-                    <img src={data.image} alt={data.name} className="w-full h-full object-cover" />
+                    <img
+                        src={data.image || 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=800&h=400'}
+                        alt={data.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=800&h=400'; }}
+                    />
                     {( (emergencyMode && data.emergency) || (isDoctor && data.specialization) ) && (
                         <div className={`absolute top-3 right-3 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-black shadow-lg transition-all transform ${emergencyMode && data.emergency
                             ? 'bg-red-600 text-white scale-110'

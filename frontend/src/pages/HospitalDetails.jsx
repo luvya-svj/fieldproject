@@ -19,17 +19,8 @@ const HospitalDetails = () => {
                         <ArrowLeft size={20} />
                         Back to Search
                     </Link>
-                    <div className="flex gap-3">
-                        <a href={`tel:${hospital.contact_phone}`} className="hidden md:flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
-                            <Phone size={18} /> Call Hospital
-                        </a>
-                        <button
-                            onClick={() => alert(`Connecting to ${hospital.name} booking gateway...`)}
-                            className={`px-6 py-2 rounded-xl font-semibold transition-all shadow-lg active:scale-95 text-white ${emergencyMode ? 'bg-red-600 hover:bg-red-700 shadow-red-600/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'}`}>
-                            Book Appointment
-                        </button>
-                    </div>
                 </div>
+
             </div>
 
             <div className="container mx-auto px-4 mt-8">
@@ -41,7 +32,7 @@ const HospitalDetails = () => {
                             <div className="flex flex-col md:flex-row gap-8 items-start">
                                 <div className="relative shrink-0">
                                     <img
-                                        src={hospital.photos[0]?.url || 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=400&h=300'}
+                                        src={hospital.photos?.[0]?.url || 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=400&h=300'}
                                         alt={hospital.name}
                                         className="w-32 h-32 md:w-48 md:h-48 rounded-2xl object-cover shadow-md"
                                     />
@@ -211,12 +202,7 @@ const HospitalDetails = () => {
                             <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 h-64 transition-all duration-500">
                                 <MapEmbed address={hospital.full_address} height="100%" />
                             </div>
-                            <div className="mt-6 flex flex-col gap-4">
-                                <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
-                                    <h4 className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Distance</h4>
-                                    <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">Approx. 2.5 km from current location</p>
-                                </div>
-                            </div>
+
                         </div>
 
                         {/* Insurance Card */}
@@ -224,14 +210,20 @@ const HospitalDetails = () => {
                             <h3 className="text-lg font-bold text-gray-900 dark:text-slate-50 mb-6 flex items-center gap-2">
                                 <ShieldCheck size={20} className="text-green-600 dark:text-green-400" /> Insurance Accepted
                             </h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                {hospital.insurance_accepted?.map((ins, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 hover:bg-green-50/50 dark:hover:bg-green-900/10 hover:border-green-100 dark:hover:border-green-900 transition-colors">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                        <span className="text-xs font-medium text-gray-700 dark:text-slate-300">{ins}</span>
-                                    </div>
-                                ))}
-                            </div>
+                            {Array.isArray(hospital.insurance_accepted) ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {hospital.insurance_accepted.map((ins, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 hover:bg-green-50/50 dark:hover:bg-green-900/10 hover:border-green-100 dark:hover:border-green-900 transition-colors">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                            <span className="text-xs font-medium text-gray-700 dark:text-slate-300">{ins}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700 text-sm font-medium text-gray-600 dark:text-slate-300">
+                                    {hospital.insurance_accepted || 'Not specified'}
+                                </div>
+                            )}
                             <p className="mt-6 text-[11px] text-gray-400 dark:text-slate-500 text-center leading-relaxed font-medium">
                                 * Insurance coverage depends on your specific policy. Please confirm with your provider.
                             </p>

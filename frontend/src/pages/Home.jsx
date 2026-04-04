@@ -64,6 +64,15 @@ const Home = () => {
                         <p className="text-lg text-gray-500 dark:text-slate-400 font-medium mt-4 max-w-2xl mx-auto">
                             We connect patients with the best healthcare providers using real-time location data and intelligent matching.
                         </p>
+                        
+                        <div className="mt-8 flex items-center justify-center gap-2">
+                             <div className="h-[1px] w-8 bg-gray-200 dark:bg-slate-800" />
+                             <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
+                                 <img src="https://www.google.com/favicon.ico" className="w-3 opacity-50" />
+                                 Sourced from Verified Google Cloud & Search Data
+                             </span>
+                             <div className="h-[1px] w-8 bg-gray-200 dark:bg-slate-800" />
+                        </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -118,6 +127,12 @@ const Home = () => {
                     </motion.div>
                 </div>
             </section>
+
+            <footer className="py-12 bg-white dark:bg-slate-950 border-t border-gray-50 dark:border-slate-900 text-center">
+                <p className="text-[10px] font-bold text-gray-300 dark:text-slate-800 uppercase tracking-[0.4em]">
+                    Made with ❤️ by D6 SE-4
+                </p>
+            </footer>
         </motion.div>
     );
 };

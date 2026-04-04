@@ -14,7 +14,7 @@ export const hospitals = hospitalsData.map(h => ({
   neighborhood: h.neighborhood,
   specialties: h.specialities,
   address: h.full_address,
-  image: h.photos?.[0]?.url,
+  image: h.photos?.[0]?.url || 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=800&h=400',
   open247: h.open_24_7,
   doctors: h.doctors,
   isVerified: h.is_verified,

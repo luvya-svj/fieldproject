@@ -52,12 +52,7 @@ const Hero = () => {
 
             <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-16 items-center">
                 <div className="flex flex-col gap-8 animate-in slide-in-from-left-8 duration-700">
-                    <div className="flex items-center gap-2">
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm ${emergencyMode ? 'bg-red-100 text-red-600 dark:bg-red-900/30' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30'
-                            }`}>
-                            Trusted by 10k+ Patients
-                        </span>
-                    </div>
+
 
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-gray-900 dark:text-slate-50 leading-[0.95]">
                         The Smart Way <br />
