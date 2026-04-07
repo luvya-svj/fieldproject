@@ -1,9 +1,9 @@
 import React from 'react';
-import { Star, MapPin, Clock, IndianRupee, ArrowRight, Siren, Navigation, CheckCircle } from 'lucide-react';
+import { Star, MapPin, Clock, IndianRupee, ArrowRight, Siren, Navigation, CheckCircle, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUserLocation } from '../context/UserLocationContext';
 
-const ListingCard = ({ data, type }) => {
+const ListingCard = ({ data, type, isCompared, onCompareToggle }) => {
     const isDoctor = type === 'doctor';
     const isPharmacy = type === 'pharmacy';
     const { emergencyMode } = useUserLocation();
@@ -38,6 +38,23 @@ const ListingCard = ({ data, type }) => {
                         className="w-full h-full object-cover"
                         onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=800&h=400'; }}
                     />
+                    {onCompareToggle && !emergencyMode && (
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onCompareToggle(data.id);
+                            }}
+                            className={`absolute top-3 left-3 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg transition-all flex items-center gap-1.5 ${
+                                isCompared
+                                    ? 'bg-blue-600 text-white border border-blue-500 shadow-blue-600/30 ring-2 ring-blue-600/20'
+                                    : 'bg-white/90 text-gray-600 hover:bg-white hover:text-blue-600 border border-white/50'
+                            }`}
+                        >
+                            <Scale size={12} className={isCompared ? 'text-white' : 'text-gray-400'} />
+                            {isCompared ? 'Added' : 'Compare'}
+                        </button>
+                    )}
                     {( (emergencyMode && data.emergency) || (isDoctor && data.specialization) ) && (
                         <div className={`absolute top-3 right-3 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-black shadow-lg transition-all transform ${emergencyMode && data.emergency
                             ? 'bg-red-600 text-white scale-110'

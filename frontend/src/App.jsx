@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import DoctorDetails from './pages/DoctorDetails';
+import DoctorProfile from './pages/DoctorProfile';
+import Compare from './pages/Compare';
 import HospitalDetails from './pages/HospitalDetails';
 import Pharmacies from './pages/Pharmacies';
 
@@ -23,6 +25,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<Search />} />
               <Route path="/doctor/:id" element={<DoctorDetails />} />
+              <Route path="/doctor-profile/:id" element={<DoctorProfile />} />
+              <Route path="/compare" element={<Compare />} />
               <Route path="/hospital/:id" element={<HospitalDetails />} />
               <Route path="/pharmacies" element={<Pharmacies />} />
             </Routes>
