@@ -6,7 +6,6 @@ import Search from './pages/Search';
 import DoctorDetails from './pages/DoctorDetails';
 import HospitalDetails from './pages/HospitalDetails';
 import Pharmacies from './pages/Pharmacies';
-import Insurance from './pages/Insurance';
 
 // import './styles/global.css';
 // import './styles/components.css'; // Already removed
@@ -26,7 +25,6 @@ function App() {
               <Route path="/doctor/:id" element={<DoctorDetails />} />
               <Route path="/hospital/:id" element={<HospitalDetails />} />
               <Route path="/pharmacies" element={<Pharmacies />} />
-              <Route path="/insurance" element={<Insurance />} />
             </Routes>
           </main>
 
