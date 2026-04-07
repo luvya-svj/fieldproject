@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { verified as allHospitals } from '../data/hospitals_verified';
 import { ArrowLeft, CheckCircle, XCircle, MapPin, IndianRupee, Clock, ShieldCheck, ArrowRight, Ambulance } from 'lucide-react';
@@ -6,6 +6,8 @@ import { ArrowLeft, CheckCircle, XCircle, MapPin, IndianRupee, Clock, ShieldChec
 const Compare = () => {
     const location = useLocation();
     const navigate = useNavigate();
+
+    const [selectedFocus, setSelectedFocus] = useState('General');
 
     // Extract ids from ?ids=id1,id2,id3
     const idsToCompare = useMemo(() => {
@@ -44,6 +46,24 @@ const Compare = () => {
 
     const hasEmergency = (h) => h.emergency || h.type?.toLowerCase().includes('hospital') || false;
 
+    const medicalCategories = [
+        'General',
+        'Cardiology',
+        'Orthopaedics',
+        'Oncology',
+        'Neurology',
+        'Gynaecology & Obstetrics',
+        'General Surgery'
+    ];
+
+    const isSpecialtySupported = (hospital, focus) => {
+        if (focus === 'General') return true;
+        const specs = Array.isArray(hospital.specialities) ? hospital.specialities : 
+                      Array.isArray(hospital.specialties) ? hospital.specialties : 
+                      (hospital.specialization ? hospital.specialization.split(',') : []);
+        return specs.some(s => s.toLowerCase().includes(focus.toLowerCase()));
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-20 transition-colors duration-500">
             {/* Header */}
@@ -56,7 +76,22 @@ const Compare = () => {
                         <ArrowLeft size={18} /> Back
                     </button>
                     <h1 className="text-3xl md:text-5xl font-black tracking-tighter mb-2">COMPARE PLATFORM</h1>
-                    <p className="text-blue-100 font-bold text-lg opacity-90">Side-by-side analysis of {compareData.length} facilities</p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
+                        <p className="text-blue-100 font-bold text-lg opacity-90">Side-by-side analysis of {compareData.length} facilities</p>
+                        
+                        <div className="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/20 flex items-center gap-3">
+                            <span className="text-sm font-bold text-blue-100 uppercase tracking-wider">Focus Area:</span>
+                            <select 
+                                value={selectedFocus} 
+                                onChange={(e) => setSelectedFocus(e.target.value)}
+                                className="bg-white text-blue-900 font-black text-sm px-4 py-2 rounded-lg pr-8 outline-none focus:ring-2 focus:ring-blue-300"
+                            >
+                                {medicalCategories.map(cat => (
+                                    <option key={cat} value={cat}>{cat} Care</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -71,9 +106,9 @@ const Compare = () => {
                                 {compareData.map(h => (
                                     <th key={h.id} className="p-6 border-b-2 border-r last:border-r-0 border-gray-100 dark:border-slate-800 align-top w-[25%] bg-white dark:bg-slate-900 relative">
                                         <div className="flex flex-col h-full">
-                                            <div className="h-32 mb-4 rounded-xl overflow-hidden shadow-inner border border-gray-100 dark:border-slate-700">
+                                            <div className="h-40 mb-4 rounded-xl overflow-hidden shadow-inner border border-gray-100 dark:border-slate-700">
                                                 <img 
-                                                    src={h.image} 
+                                                    src={h.image || 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=800&h=400'} 
                                                     alt={h.name} 
                                                     className="w-full h-full object-cover" 
                                                     onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&q=80&w=800&h=400'; }}
@@ -126,6 +161,25 @@ const Compare = () => {
                             {/* CLINICAL SUPPORT */}
                             <tr className="bg-gray-50 dark:bg-slate-900/50">
                                 <td colSpan={compareData.length + 1} className="py-3 px-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">2. Clinical Support</td>
+                            </tr>
+                            <tr>
+                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-blue-600 dark:text-blue-400 font-black bg-blue-50/50 dark:bg-blue-900/10">Availability:<br/>{selectedFocus}</td>
+                                {compareData.map(h => {
+                                    const supported = isSpecialtySupported(h, selectedFocus);
+                                    return (
+                                        <td key={`${h.id}-focus`} className={`p-6 border-r last:border-r-0 border-gray-100 dark:border-slate-800 transition-colors ${supported ? 'bg-green-50/30 dark:bg-green-900/10' : 'bg-red-50/30 dark:bg-red-900/10'}`}>
+                                            {supported ? (
+                                                <div className="flex items-center gap-2 text-green-700 dark:text-green-400 font-extrabold">
+                                                    <CheckCircle size={24} /> <span>Available</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold">
+                                                    <XCircle size={20} /> <span>Not Specialized</span>
+                                                </div>
+                                            )}
+                                        </td>
+                                    );
+                                })}
                             </tr>
                             <tr>
                                 <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Emergency & Trauma</td>
