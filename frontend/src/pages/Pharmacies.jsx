@@ -1,128 +1,193 @@
-import React, { useState } from 'react';
-import ListingCard from '../components/ListingCard';
-import { pharmacies } from '../data/pharmacies';
-import { Search, Pill, Store, Clock, ChevronRight, Activity } from 'lucide-react';
-import { useUserLocation } from '../context/UserLocationContext';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search as SearchIcon, X, MapPin, Truck, Pill, Loader2, AlertCircle } from 'lucide-react';
+import PharmacyCard from '../components/PharmacyCard';
 
 const Pharmacies = () => {
-    const [medicine, setMedicine] = useState('');
-    const [searchStatus, setSearchStatus] = useState(null); // null, 'searching', 'found'
-    const { emergencyMode } = useUserLocation();
+    const [pharmacies, setPharmacies] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (!medicine) return;
-        setSearchStatus('searching');
-        setTimeout(() => {
-            setSearchStatus('found');
-        }, 1500);
-    };
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedNeighborhood, setSelectedNeighborhood] = useState('All');
+    const [deliveryOnly, setDeliveryOnly] = useState(false);
+
+    useEffect(() => {
+        const fetchPharmacies = async () => {
+            try {
+                // Change to actual backend URL in production
+                const response = await fetch('http://localhost:5000/api/pharmacies');
+                if (!response.ok) throw new Error('Failed to fetch pharmacies');
+                const result = await response.json();
+                setPharmacies(result.data);
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                setError('Unable to load pharmacy locations right now.');
+                setLoading(false);
+            }
+        };
+
+        fetchPharmacies();
+    }, []);
+
+    // Derive neighborhoods from data
+    const neighborhoods = useMemo(() => {
+        const nbrs = new Set(pharmacies.map(p => p.neighborhood).filter(Boolean));
+        return ['All', ...Array.from(nbrs).sort()];
+    }, [pharmacies]);
+
+    const filteredPharmacies = useMemo(() => {
+        let result = pharmacies;
+
+        if (searchQuery.trim().length > 0) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.neighborhood && p.neighborhood.toLowerCase().includes(query)) ||
+                (p.full_address && p.full_address.toLowerCase().includes(query))
+            );
+        }
+
+        if (selectedNeighborhood !== 'All') {
+            result = result.filter(p => p.neighborhood === selectedNeighborhood);
+        }
+
+        if (deliveryOnly) {
+            result = result.filter(p => p.home_delivery);
+        }
+
+        return result;
+    }, [pharmacies, searchQuery, selectedNeighborhood, deliveryOnly]);
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-20">
-            {/* Premium Hero Section */}
-            <div className={`pt-16 pb-20 transition-colors duration-500 ${emergencyMode ? 'bg-red-600' : 'bg-blue-600'} text-white relative overflow-hidden shadow-2xl`}>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl -ml-20 -mb-20"></div>
-
-                <div className="container mx-auto px-4 relative">
-                    <div className="max-w-3xl">
-                        <div className="flex items-center gap-3 mb-6 animate-in slide-in-from-bottom-2 duration-700">
-                            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20">
-                                <Pill size={32} className="text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-1">Medicine Finder</h1>
-                                <p className="text-lg font-bold opacity-80 uppercase tracking-widest text-[10px]">Real-time Inventory Network</p>
-                            </div>
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-20 transition-colors duration-500">
+            {/* Header */}
+            <div className="bg-emerald-600 dark:bg-emerald-800 pt-12 pb-12 text-white shadow-lg">
+                <div className="container mx-auto px-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div>
+                            <h1 className="text-4xl md:text-5xl font-black mb-2 flex items-center gap-3 tracking-tighter">
+                                <Pill size={40} />
+                                24/7 PHARMACIES
+                            </h1>
+                            <p className="text-lg font-bold opacity-90 text-emerald-100">
+                                Verified all-night medical stores in Mumbai
+                            </p>
                         </div>
-
-                        <p className="text-xl font-bold mb-10 opacity-90 max-w-xl leading-relaxed">
-                            Search for specific medications across our network of 24/7 pharmacies and verify live stock availability.
-                        </p>
-
-                        <form className="relative group max-w-2xl" onSubmit={handleSearch}>
+                        
+                        <div className="relative w-full max-w-xl group">
                             <input
                                 type="text"
-                                placeholder="Search medicine name (e.g. Augmentin 625, Insulin)..."
-                                className="w-full h-18 pl-16 pr-44 rounded-2xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 font-bold text-lg shadow-2xl focus:ring-8 focus:ring-white/20 outline-none transition-all border-none"
-                                value={medicine}
-                                onChange={(e) => setMedicine(e.target.value)}
+                                placeholder="Search by area, store name..."
+                                className="w-full h-16 pl-14 pr-12 rounded-2xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 font-bold text-lg shadow-2xl focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all border-none"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
-                            <Search className="absolute left-6 top-6 text-gray-400 dark:text-slate-500 group-focus-within:text-white dark:group-focus-within:text-blue-400 transition-colors" size={24} />
-                            <button
-                                type="submit"
-                                className={`absolute right-3 top-3 bottom-3 px-8 rounded-xl font-black text-sm uppercase tracking-widest transition-all shadow-lg active:scale-95 ${emergencyMode ? 'bg-red-600' : 'bg-blue-600'
-                                    } text-white hover:brightness-110`}
-                            >
-                                Check Stock
-                            </button>
-                        </form>
-
-                        <div className="mt-8 flex flex-wrap gap-4">
-                            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/60">
-                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                Live Sync Active
-                            </div>
-                            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/60">
-                                <Clock size={14} />
-                                24/7 Support Available
-                            </div>
+                            <SearchIcon className="absolute left-5 top-5 text-gray-400 dark:text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={24} />
+                            {searchQuery && (
+                                <button onClick={() => setSearchQuery('')} className="absolute right-5 top-5 text-gray-400 hover:text-gray-600">
+                                    <X size={24} />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 -mt-10 relative z-10">
-                {/* Search Results Mockup */}
-                {searchStatus === 'searching' && (
-                    <div className="bg-white dark:bg-slate-900 p-10 rounded-3xl border border-blue-100 dark:border-slate-800 shadow-2xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-300">
-                        <div className="w-16 h-16 border-4 border-blue-100 dark:border-slate-800 border-t-blue-600 rounded-full animate-spin mb-6"></div>
-                        <h3 className="text-xl font-black text-gray-900 dark:text-slate-100 mb-2">Scanning Network Inventory...</h3>
-                        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Connecting to 14 regional pharmaceutical nodes</p>
-                    </div>
-                )}
-
-                {searchStatus === 'found' && (
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border-2 border-green-500 dark:border-green-600 shadow-2xl animate-in slide-in-from-top-4 duration-500">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <div className="flex items-center gap-4">
-                                <div className="p-4 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-2xl">
-                                    <Activity size={32} />
-                                </div>
-                                <div>
-                                    <h3 className="text-2xl font-black text-gray-900 dark:text-slate-100 tracking-tight">Stock Confirmed!</h3>
-                                    <p className="text-gray-500 dark:text-slate-400 font-bold">"{medicine}" found in 3 pharmacies within 5km.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <button className="px-6 py-3 bg-green-600 text-white font-black rounded-xl shadow-lg shadow-green-600/20 text-sm uppercase tracking-widest hover:bg-green-700 transition-all active:scale-95">
-                                    Reserve Now
-                                </button>
-                                <button onClick={() => setSearchStatus(null)} className="p-3 text-gray-400 hover:text-gray-600">
-                                    <ChevronRight size={24} />
-                                </button>
-                            </div>
+            {/* Main Content Area */}
+            <div className="container mx-auto px-4 mt-8 grid lg:grid-cols-4 gap-8">
+                
+                {/* Filtration Sidebar */}
+                <div className="hidden lg:block space-y-6">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm sticky top-28 space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-black text-gray-900 dark:text-gray-100">Filters</h2>
+                            <button 
+                                onClick={() => { setSearchQuery(''); setSelectedNeighborhood('All'); setDeliveryOnly(false); }}
+                                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 underline"
+                            >
+                                Reset
+                            </button>
                         </div>
-                    </div>
-                )}
 
-                <div className="mt-20">
-                    <div className="flex items-center justify-between mb-10">
+                        {/* Delivery Toggle */}
+                        <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/50">
+                            <div className="flex items-center gap-3 text-emerald-700 dark:text-emerald-400">
+                                <Truck size={20} />
+                                <span className="text-sm font-black uppercase tracking-widest">Home Delivery</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" className="sr-only peer" checked={deliveryOnly} onChange={(e) => setDeliveryOnly(e.target.checked)} />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+
+                        {/* Neighborhood Dropdown */}
                         <div>
-                            <h2 className="text-3xl font-black text-gray-900 dark:text-slate-50 tracking-tighter mb-2">Verified Pharmacies</h2>
-                            <p className="text-gray-500 dark:text-slate-400 font-bold">Accredited medical suppliers with real-time stock sync</p>
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                    <MapPin size={18} />
+                                </div>
+                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Neighborhood</h3>
+                            </div>
+                            <select
+                                value={selectedNeighborhood}
+                                onChange={(e) => setSelectedNeighborhood(e.target.value)}
+                                className="w-full bg-gray-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm font-bold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"
+                            >
+                                {neighborhoods.map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
                         </div>
-                        <button className="hidden md:flex items-center gap-2 text-sm font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-all">
-                            Filter by 24/7 < ChevronRight size={16} />
-                        </button>
+                    </div>
+                </div>
+
+                {/* Results Area */}
+                <div className="lg:col-span-3">
+                    <div className="flex items-center gap-2 pl-4 mb-6">
+                        <span className="text-sm font-bold text-gray-700 dark:text-slate-300 uppercase tracking-tight">
+                            {filteredPharmacies.length} Pharmacies Found
+                        </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {pharmacies.map(item => (
-                            <ListingCard key={item.id} data={item} type="pharmacy" />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-32 text-emerald-600">
+                            <Loader2 size={48} className="animate-spin mb-4" />
+                            <p className="font-black uppercase tracking-widest text-sm">Loading Pharmacies...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="flex flex-col items-center justify-center py-32 text-red-500">
+                            <AlertCircle size={48} className="mb-4" />
+                            <p className="font-black uppercase tracking-widest text-sm">{error}</p>
+                        </div>
+                    ) : filteredPharmacies.length > 0 ? (
+                        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <AnimatePresence mode="popLayout">
+                                {filteredPharmacies.map(pharmacy => (
+                                    <motion.div
+                                        key={pharmacy.id}
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <PharmacyCard data={pharmacy} />
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="py-32 text-center bg-white dark:bg-slate-900 rounded-3xl border-2 border-dashed border-gray-200 dark:border-slate-800"
+                        >
+                            <Pill className="mx-auto text-gray-300 dark:text-slate-700 mb-4" size={48} />
+                            <h3 className="text-xl font-black text-gray-900 dark:text-slate-50 mb-1">No pharmacies found</h3>
+                            <p className="text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs">Try adjusting your filters or area</p>
+                        </motion.div>
+                    )}
                 </div>
             </div>
         </div>

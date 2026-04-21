@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import hospitalsRoute from './routes/hospitals.js';
+import pharmaciesRoute from './routes/pharmacies.js';
 import sequelize from './config/db.js';
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/hospitals', hospitalsRoute);
+app.use('/api/pharmacies', pharmaciesRoute);
 
 // Basic Health Check
 app.get('/', (req, res) => {

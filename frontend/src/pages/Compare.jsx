@@ -64,6 +64,21 @@ const Compare = () => {
         return specs.some(s => s.toLowerCase().includes(focus.toLowerCase()));
     };
 
+    // Calculate Best Value & Top Rated
+    const maxRating = Math.max(...compareData.map(h => h.rating || 0), 0);
+
+    const getFeeValue = (h) => {
+        if (h.consultation_fee_range && typeof h.consultation_fee_range === 'object') {
+            return h.consultation_fee_range.min || 999999; 
+        }
+        if (typeof h.consultation_fee_range === 'number') return h.consultation_fee_range;
+        return h.consultationFee || 999999;
+    };
+    
+    // Only calculate min fee if there's actually a valid fee
+    const currentFees = compareData.map(getFeeValue).filter(fee => fee < 999999);
+    const minFee = currentFees.length > 0 ? Math.min(...currentFees) : -1;
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-20 transition-colors duration-500">
             {/* Header */}
@@ -100,8 +115,8 @@ const Compare = () => {
                     <table className="w-full min-w-[800px] text-left border-collapse">
                         <thead>
                             <tr>
-                                <th className="p-6 border-b-2 border-r border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50 w-1/4">
-                                    <div className="text-sm font-black text-gray-400 uppercase tracking-widest">Compare Criteria</div>
+                                <th className="p-6 border-b-2 border-r border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 w-1/4 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                    <div className="text-sm font-black text-gray-400 uppercase tracking-widest leading-tight">Compare<br/>Criteria</div>
                                 </th>
                                 {compareData.map(h => (
                                     <th key={h.id} className="p-6 border-b-2 border-r last:border-r-0 border-gray-100 dark:border-slate-800 align-top w-[25%] bg-white dark:bg-slate-900 relative">
@@ -130,24 +145,32 @@ const Compare = () => {
                         </thead>
                         <tbody className="text-sm font-medium divide-y divide-gray-100 dark:divide-slate-800">
                             {/* OVERVIEW SECTION */}
-                            <tr className="bg-gray-50 dark:bg-slate-900/50">
-                                <td colSpan={compareData.length + 1} className="py-3 px-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">1. Overview & Location</td>
+                            <tr className="bg-gray-100/50 dark:bg-slate-800/50">
+                                <td colSpan={compareData.length + 1} className="py-3 px-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] sticky left-0 z-10 inline-block w-full">1. Overview & Location</td>
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Rating</td>
-                                {compareData.map(h => (
-                                    <td key={h.id} className="p-6 border-r last:border-r-0 border-gray-100 dark:border-slate-800">
-                                        <div className="flex items-center gap-2">
-                                            <div className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-black text-base">
-                                                {h.rating} ★
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-900 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Rating</td>
+                                {compareData.map(h => {
+                                    const isTopRated = h.rating === maxRating && maxRating > 0;
+                                    return (
+                                        <td key={h.id} className={`p-6 border-r last:border-r-0 border-gray-100 dark:border-slate-800 ${isTopRated ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : ''}`}>
+                                            <div className="flex flex-col items-start gap-1">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-black text-base">
+                                                        {h.rating} ★
+                                                    </div>
+                                                    <div className="text-xs text-gray-400 font-bold">({h.reviews || 0})</div>
+                                                </div>
+                                                {isTopRated && (
+                                                    <span className="text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded-md border border-yellow-200 dark:border-yellow-800/50 mt-1 shadow-sm">Top Rated</span>
+                                                )}
                                             </div>
-                                            <div className="text-xs text-gray-400 font-bold">({h.reviews || 0})</div>
-                                        </div>
-                                    </td>
-                                ))}
+                                        </td>
+                                    );
+                                })}
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Location</td>
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-900 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Location</td>
                                 {compareData.map(h => (
                                     <td key={h.id} className="p-6 border-r last:border-r-0 border-gray-100 dark:border-slate-800">
                                         <div className="flex items-start gap-2">
@@ -159,11 +182,11 @@ const Compare = () => {
                             </tr>
 
                             {/* CLINICAL SUPPORT */}
-                            <tr className="bg-gray-50 dark:bg-slate-900/50">
-                                <td colSpan={compareData.length + 1} className="py-3 px-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">2. Clinical Support</td>
+                            <tr className="bg-gray-100/50 dark:bg-slate-800/50">
+                                <td colSpan={compareData.length + 1} className="py-3 px-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] sticky left-0 z-10 inline-block w-full">2. Clinical Support</td>
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-blue-600 dark:text-blue-400 font-black bg-blue-50/50 dark:bg-blue-900/10">Availability:<br/>{selectedFocus}</td>
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-900/20 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Availability:<br/><span className="text-xs text-blue-800 dark:text-blue-300 font-black tracking-tight">{selectedFocus}</span></td>
                                 {compareData.map(h => {
                                     const supported = isSpecialtySupported(h, selectedFocus);
                                     return (
@@ -182,7 +205,7 @@ const Compare = () => {
                                 })}
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Emergency & Trauma</td>
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-900 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Emergency & Trauma</td>
                                 {compareData.map(h => {
                                     const isEmergency = hasEmergency(h);
                                     return (
@@ -201,7 +224,7 @@ const Compare = () => {
                                 })}
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Top Specialities</td>
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-900 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Top Specialities</td>
                                 {compareData.map(h => {
                                     const specs = Array.isArray(h.specialities) ? h.specialities : 
                                                   Array.isArray(h.specialties) ? h.specialties : 
@@ -222,26 +245,35 @@ const Compare = () => {
                             </tr>
 
                             {/* FINANCIALS */}
-                            <tr className="bg-gray-50 dark:bg-slate-900/50">
-                                <td colSpan={compareData.length + 1} className="py-3 px-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">3. Financials & Insurance</td>
+                            <tr className="bg-gray-100/50 dark:bg-slate-800/50">
+                                <td colSpan={compareData.length + 1} className="py-3 px-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] sticky left-0 z-10 inline-block w-full">3. Financials & Insurance</td>
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Consultation Fee</td>
-                                {compareData.map(h => (
-                                    <td key={h.id} className="p-6 border-r last:border-r-0 border-gray-100 dark:border-slate-800">
-                                        <div className="flex items-center gap-1.5 text-lg font-black text-gray-900 dark:text-slate-100">
-                                            <IndianRupee size={20} className="text-gray-400" />
-                                            {h.consultation_fee_range ? (
-                                                typeof h.consultation_fee_range === 'object'
-                                                    ? `${h.consultation_fee_range.min} - ${h.consultation_fee_range.max}`
-                                                    : h.consultation_fee_range
-                                            ) : (h.consultationFee || 'Not Disclosed')}
-                                        </div>
-                                    </td>
-                                ))}
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-900 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Consultation Fee</td>
+                                {compareData.map(h => {
+                                    const feeValue = getFeeValue(h);
+                                    const isBestValue = feeValue === minFee && minFee !== -1;
+                                    return (
+                                        <td key={h.id} className={`p-6 border-r last:border-r-0 border-gray-100 dark:border-slate-800 ${isBestValue ? 'bg-green-50/50 dark:bg-green-900/10' : ''}`}>
+                                            <div className="flex flex-col items-start gap-1">
+                                                <div className="flex items-center gap-1.5 text-lg font-black text-gray-900 dark:text-slate-100">
+                                                    <IndianRupee size={20} className="text-gray-400" />
+                                                    {h.consultation_fee_range ? (
+                                                        typeof h.consultation_fee_range === 'object'
+                                                            ? `${h.consultation_fee_range.min} - ${h.consultation_fee_range.max}`
+                                                            : h.consultation_fee_range
+                                                    ) : (h.consultationFee || 'Not Disclosed')}
+                                                </div>
+                                                {isBestValue && (
+                                                    <span className="text-[10px] font-black text-green-700 dark:text-green-400 uppercase tracking-wider bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-md border border-green-200 dark:border-green-800/50 mt-1 shadow-sm">Best Value</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    );
+                                })}
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Est. Procedure Budget</td>
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-900 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Est. Procedure Budget</td>
                                 {compareData.map(h => (
                                     <td key={h.id} className="p-6 border-r last:border-r-0 border-gray-100 dark:border-slate-800">
                                         {h.budget_range ? (
@@ -255,7 +287,7 @@ const Compare = () => {
                                 ))}
                             </tr>
                             <tr>
-                                <td className="p-6 border-r border-gray-100 dark:border-slate-800 text-gray-600 dark:text-slate-400 font-bold bg-gray-50 dark:bg-slate-900/30">Insurance Cashless</td>
+                                <td className="p-6 border-r border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-900 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Insurance Cashless</td>
                                 {compareData.map(h => {
                                     const ins = h.insurance_accepted || h.insurance || [];
                                     const insArray = Array.isArray(ins) ? ins : [ins];

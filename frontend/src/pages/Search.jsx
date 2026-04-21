@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ListingCard from '../components/ListingCard';
 import DoctorCard from '../components/DoctorCard';
+import TriageAssistant from '../components/TriageAssistant';
 import { ListingCardSkeleton } from '../components/Skeleton';
 import { useHospitals } from '../hooks/useHospitals';
 import { getAllDoctors } from '../utils/doctorUtils';
@@ -100,6 +101,12 @@ const Search = () => {
         setBudgetRange('All');
         setSearchQuery('');
         setSortBy('rating');
+    };
+
+    const handleTriageComplete = ({ query, isEmergency }) => {
+        if (query) setSearchQuery(query);
+        setActiveTab('hospitals'); // Default to hospitals for symptom resolution
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     // ── Hospital filter logic ──────────────────────────────────
@@ -552,6 +559,8 @@ const Search = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <TriageAssistant onComplete={handleTriageComplete} />
         </motion.div>
     );
 };
